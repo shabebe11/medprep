@@ -4,9 +4,9 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <a href="/" className="navbar-logo">
+        <Link href="/" className="navbar-logo">
           MedPrep
-        </a>
+        </Link>
         <ul className="navbar-menu">
           <li className="navbar-item">
             <Link href="/" className="navbar-link">
