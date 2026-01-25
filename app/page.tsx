@@ -1,18 +1,19 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="">
       <main className="">
         <li className="navbar-item">
-          <a href="/mmi-prep">
+          <Link href="/mmi-prep">
           Continue to mmi prep
-          </a>
+          </Link>
         </li>
         <li className="navbar-item">
-          <a href="/ucat-prep">
+          <Link href="/ucat-prep">
           continue to ucat prep
-          </a>
+          </Link>
         </li>
       </main>
     </div>
