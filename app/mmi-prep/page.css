@@ -1,0 +1,221 @@
+:root {
+  --mmi-ink: #0f172a;
+  --mmi-muted: #475569;
+  --mmi-surface: #ffffff;
+  --mmi-accent: #0f766e;
+  --mmi-accent-2: #0ea5a4;
+  --mmi-warm: #f59e0b;
+  --mmi-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  --mmi-radius: 18px;
+}
+
+.DailyMMI,
+.PracticeMMI {
+  max-width: 760px;
+  margin: 4.5rem auto 3rem;
+  padding: 3.5rem 3.25rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: var(--mmi-radius);
+  box-shadow: var(--mmi-shadow);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.DailyMMI::before,
+.PracticeMMI::before {
+  content: "";
+  position: absolute;
+  inset: -40% 35% auto -35%;
+  height: 280px;
+  background: radial-gradient(circle, rgba(14, 165, 164, 0.2), transparent 70%);
+  pointer-events: none;
+}
+
+.DailyMMI::after,
+.PracticeMMI::after {
+  content: "";
+  position: absolute;
+  inset: auto -30% -45% 30%;
+  height: 260px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.18), transparent 70%);
+  pointer-events: none;
+}
+
+.DailyText,
+.PracticeText {
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-size: clamp(2.2rem, 3vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--mmi-ink);
+  margin-bottom: 1rem;
+}
+
+.DailySubText,
+.PracticeSubText {
+  font-size: 1.05rem;
+  color: var(--mmi-muted);
+  line-height: 1.7;
+  margin: 0 auto 2rem;
+  max-width: 560px;
+}
+
+.DailyAnswerText,
+.AnswerText {
+  background: #f1f5f9;
+  border-left: 4px solid var(--mmi-accent);
+  padding: 1.25rem 1.5rem;
+  margin: 1.75rem auto 2rem;
+  border-radius: 12px;
+  color: #1f2937;
+  line-height: 1.6;
+  max-width: 560px;
+  text-align: left;
+}
+
+.reveal-button,
+.generate-button,
+.timer-button,
+.back-button {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.85rem 1.75rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  margin: 0.4rem 0.3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.reveal-button {
+  background: linear-gradient(135deg, var(--mmi-accent), var(--mmi-accent-2));
+  color: #ffffff;
+  box-shadow: 0 12px 22px rgba(14, 165, 164, 0.25);
+}
+
+.generate-button {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
+}
+
+.timer-button {
+  background: #ffffff;
+  color: var(--mmi-ink);
+  border: 1px solid rgba(15, 118, 110, 0.25);
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.12);
+}
+
+.back-button {
+  background: #fff7ed;
+  color: #9a3412;
+  box-shadow: 0 10px 20px rgba(154, 52, 18, 0.18);
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.reveal-button:hover,
+.generate-button:hover,
+.timer-button:hover,
+.back-button:hover {
+  transform: translateY(-2px);
+}
+
+.back-button {
+  display: inline-flex;
+  margin-top: 1.75rem;
+}
+
+.timer-panel {
+  margin: 1.5rem auto 0;
+  padding: 1.5rem;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 118, 110, 0.12);
+}
+
+.timer-label {
+  font-size: 0.95rem;
+  color: var(--mmi-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.timer-readout {
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--mmi-ink);
+  margin-bottom: 1rem;
+}
+
+.timer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.timer-start,
+.timer-stop,
+.timer-finish {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.7rem 1.6rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.timer-start {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #ffffff;
+  box-shadow: 0 12px 20px rgba(20, 184, 166, 0.25);
+}
+
+.timer-stop {
+  background: #fee2e2;
+  color: #b91c1c;
+  box-shadow: 0 10px 18px rgba(185, 28, 28, 0.18);
+}
+
+.timer-finish {
+  background: #ede9fe;
+  color: #5b21b6;
+  box-shadow: 0 10px 18px rgba(91, 33, 182, 0.2);
+}
+
+.timer-start:disabled,
+.timer-stop:disabled,
+.timer-finish:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .DailyMMI,
+  .PracticeMMI {
+    margin: 2.5rem 1.25rem;
+    padding: 2.5rem 1.75rem;
+  }
+
+  .DailyAnswerText,
+  .AnswerText {
+    text-align: left;
+  }
+}
