@@ -9,6 +9,8 @@ export default function Home() {
     const [timerPhase, setTimerPhase] = useState<"prep" | "response">("prep");
     const [prepSeconds, setPrepSeconds] = useState(120);
     const [respSeconds, setRespSeconds] = useState(180);
+    const [prepDuration, setPrepDuration] = useState(120);
+    const [respDuration, setRespDuration] = useState(180);
     const [isPrepRunning, setIsPrepRunning] = useState(false);
     const [isRespRunning, setIsRespRunning] = useState(false);
 
@@ -19,7 +21,7 @@ export default function Home() {
                 if (prev <= 1) {
                     setIsPrepRunning(false);
                     setTimerPhase("response");
-                    setRespSeconds(180);
+                    setRespSeconds(respDuration);
                     setIsRespRunning(false);
                     return 0;
                 }
@@ -27,7 +29,7 @@ export default function Home() {
             });
         }, 1000);
         return () => window.clearInterval(intervalId);
-    }, [isPrepRunning]);
+    }, [isPrepRunning, respDuration]);
 
     useEffect(() => {
         if (!isRespRunning) return;
@@ -57,13 +59,13 @@ export default function Home() {
                         className="timer-button"
                         onClick={() => {
                             setTimerEnabled((prev) => !prev);
-                            setTimerPhase("prep");
-                            setPrepSeconds(120);
-                            setRespSeconds(180);
-                            setIsPrepRunning(false);
-                            setIsRespRunning(false);
-                        }}
-                    >
+                    setTimerPhase("prep");
+                    setPrepSeconds(prepDuration);
+                    setRespSeconds(respDuration);
+                    setIsPrepRunning(false);
+                    setIsRespRunning(false);
+                }}
+            >
                         {timerEnabled ? "Disable timer" : "Enable timer"}
                     </button>
                     <button className="reveal-button" onClick={() => setAnswerRevealed(!answerRevealed)}>
@@ -75,6 +77,44 @@ export default function Home() {
                 </div>
                 {timerEnabled && (
                     <div className="timer-panel">
+                        <div className="timer-select">
+                            <label className="timer-select-item">
+                                Prep time
+                                <select
+                                    value={prepDuration}
+                                    onChange={(event) => {
+                                        const value = Number(event.target.value);
+                                        setPrepDuration(value);
+                                        setPrepSeconds(value);
+                                        setIsPrepRunning(false);
+                                        setTimerPhase("prep");
+                                    }}
+                                >
+                                    <option value={60}>1 min</option>
+                                    <option value={120}>2 min</option>
+                                    <option value={180}>3 min</option>
+                                    <option value={240}>4 min</option>
+                                </select>
+                            </label>
+                            <label className="timer-select-item">
+                                Response time
+                                <select
+                                    value={respDuration}
+                                    onChange={(event) => {
+                                        const value = Number(event.target.value);
+                                        setRespDuration(value);
+                                        setRespSeconds(value);
+                                        setIsRespRunning(false);
+                                        setTimerPhase("response");
+                                    }}
+                                >
+                                    <option value={120}>2 min</option>
+                                    <option value={180}>3 min</option>
+                                    <option value={240}>4 min</option>
+                                    <option value={300}>5 min</option>
+                                </select>
+                            </label>
+                        </div>
                         {timerPhase === "prep" ? (
                             <>
                                 <p className="timer-label">Prep Timer</p>
@@ -93,7 +133,7 @@ export default function Home() {
                                             setIsPrepRunning(false);
                                             setPrepSeconds(0);
                                             setTimerPhase("response");
-                                            setRespSeconds(180);
+                                            setRespSeconds(respDuration);
                                             setIsRespRunning(false);
                                         }}
                                         disabled={prepSeconds === 0}
