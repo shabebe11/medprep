@@ -351,3 +351,73 @@
   color: #b91c1c;
   border-color: rgba(185, 28, 28, 0.2);
 }
+
+@media (max-width: 900px) {
+  .ucat-page {
+    margin: 2.5rem 1.5rem;
+    padding: 1.75rem 0 6rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .ucat-page {
+    margin: 2rem 1.25rem;
+    padding: 1.5rem 0 5rem;
+  }
+
+  .ucat-page-title {
+    font-size: clamp(1.6rem, 6vw, 1.9rem);
+  }
+
+  .ucat-sections-select {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .timer-settings {
+    max-width: 100%;
+  }
+
+  .quiz-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .quiz-card,
+  .summary-card {
+    padding: 1.5rem;
+  }
+
+  .quiz-next {
+    width: 100%;
+  }
+
+  .start-inline {
+    justify-content: stretch;
+  }
+
+  .timer-start {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .ucat-page {
+    margin: 1.75rem 1rem;
+  }
+
+  .sectionsSelect,
+  .practice-mode-button,
+  .timer-option,
+  .question-option {
+    width: 100%;
+  }
+
+  .timer-options,
+  .question-options {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .quiz-timer {
+    align-self: flex-start;
+  }
+}

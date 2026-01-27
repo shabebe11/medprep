@@ -254,3 +254,26 @@
     text-align: left;
   }
 }
+
+@media (max-width: 520px) {
+  .DailyMMI,
+  .PracticeMMI {
+    margin: 2rem 0.75rem;
+    padding: 2rem 1.25rem;
+  }
+
+  .DailyMMI .DailySubText,
+  .PracticeMMI .PracticeSubText {
+    padding: 1.1rem 1.2rem;
+  }
+
+  .timer-controls {
+    flex-direction: column;
+  }
+
+  .timer-start,
+  .timer-stop,
+  .timer-finish {
+    width: 100%;
+  }
+}

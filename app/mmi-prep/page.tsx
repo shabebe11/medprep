@@ -14,6 +14,69 @@ export default function Home() {
     const [isPrepRunning, setIsPrepRunning] = useState(false);
     const [isRespRunning, setIsRespRunning] = useState(false);
 
+    const getLocalDateString = (date = new Date()) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const recordDailyReveal = () => {
+        if (typeof window === "undefined") return;
+
+        const STORAGE_KEYS = {
+            lastDate: "mmiDailyLastReveal",
+            streak: "mmiDailyStreak",
+            best: "mmiDailyBestStreak",
+            total: "mmiDailyTotal",
+            history: "mmiDailyHistory",
+        };
+
+        const today = getLocalDateString();
+        const lastDate = window.localStorage.getItem(STORAGE_KEYS.lastDate);
+        const currentStreak = Number(window.localStorage.getItem(STORAGE_KEYS.streak) || 0);
+        const currentTotal = Number(window.localStorage.getItem(STORAGE_KEYS.total) || 0);
+        const currentBest = Number(window.localStorage.getItem(STORAGE_KEYS.best) || 0);
+        const historyRaw = window.localStorage.getItem(STORAGE_KEYS.history);
+
+        const [year, month, day] = today.split("-").map(Number);
+        const todayDate = new Date(year, month - 1, day);
+        const yesterdayDate = new Date(todayDate);
+        yesterdayDate.setDate(todayDate.getDate() - 1);
+        const yesterday = getLocalDateString(yesterdayDate);
+
+        let nextStreak = currentStreak;
+        if (lastDate !== today) {
+            nextStreak = lastDate === yesterday ? currentStreak + 1 : 1;
+        }
+
+        let history: string[] = [];
+        if (historyRaw) {
+            try {
+                const parsed = JSON.parse(historyRaw);
+                if (Array.isArray(parsed)) {
+                    history = parsed.filter((value) => typeof value === "string");
+                }
+            } catch {
+                history = [];
+            }
+        }
+
+        if (!history.includes(today)) {
+            history.push(today);
+        }
+
+        const trimmedHistory = history.slice(-30);
+
+        const nextBest = Math.max(currentBest, nextStreak);
+
+        window.localStorage.setItem(STORAGE_KEYS.lastDate, today);
+        window.localStorage.setItem(STORAGE_KEYS.streak, String(nextStreak));
+        window.localStorage.setItem(STORAGE_KEYS.best, String(nextBest));
+        window.localStorage.setItem(STORAGE_KEYS.total, String(currentTotal + 1));
+        window.localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(trimmedHistory));
+    };
+
     useEffect(() => {
         if (!isPrepRunning) return;
         const intervalId = window.setInterval(() => {
@@ -198,7 +261,16 @@ export default function Home() {
                 MMI question here
             </p>
             <div className="action-row">
-                <button className="reveal-button" onClick={() => setAnswerRevealed(!answerRevealed)}>
+                <button
+                    className="reveal-button"
+                    onClick={() => {
+                        const next = !answerRevealed;
+                        setAnswerRevealed(next);
+                        if (next) {
+                            recordDailyReveal();
+                        }
+                    }}
+                >
                     {answerRevealed ? 'Hide Answer' : 'Reveal Answer'}
                 </button>
                 <button className="generate-button" onClick={() => setIsPracticeMode(true)}>
