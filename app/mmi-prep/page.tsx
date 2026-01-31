@@ -1,6 +1,6 @@
 'use client';
 import "./page.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type MmiQuestion = {
@@ -43,7 +43,7 @@ export default function Home() {
         return Math.floor(diff / (1000 * 60 * 60 * 24));
     };
 
-    const fetchMmiQuestionByIndex = async (index: number) => {
+    const fetchMmiQuestionByIndex = useCallback(async (index: number) => {
         const supabase = createClient();
         const { data, error } = await supabase
             .from("MMI")
@@ -55,9 +55,9 @@ export default function Home() {
 
         if (error) throw error;
         return data ?? null;
-    };
+    }, []);
 
-    const fetchRandomMmiQuestion = async () => {
+    const fetchRandomMmiQuestion = useCallback(async () => {
         const supabase = createClient();
         const { count, error: countError } = await supabase
             .from("MMI")
@@ -68,9 +68,9 @@ export default function Home() {
 
         const randomIndex = Math.floor(Math.random() * count);
         return fetchMmiQuestionByIndex(randomIndex);
-    };
+    }, [fetchMmiQuestionByIndex]);
 
-    const fetchDailyQuestion = async () => {
+    const fetchDailyQuestion = useCallback(async () => {
         setIsDailyLoading(true);
         setDailyError(null);
         try {
@@ -96,9 +96,9 @@ export default function Home() {
         } finally {
             setIsDailyLoading(false);
         }
-    };
+    }, [fetchMmiQuestionByIndex, fetchRandomMmiQuestion]);
 
-    const fetchPracticeQuestion = async () => {
+    const fetchPracticeQuestion = useCallback(async () => {
         setIsPracticeLoading(true);
         setPracticeError(null);
         try {
@@ -109,7 +109,7 @@ export default function Home() {
         } finally {
             setIsPracticeLoading(false);
         }
-    };
+    }, [fetchRandomMmiQuestion]);
 
     const recordDailyReveal = () => {
         if (typeof window === "undefined") return;
@@ -194,13 +194,13 @@ export default function Home() {
 
     useEffect(() => {
         fetchDailyQuestion();
-    }, []);
+    }, [fetchDailyQuestion]);
 
     useEffect(() => {
         if (isPracticeMode && !practiceQuestion && !isPracticeLoading) {
             fetchPracticeQuestion();
         }
-    }, [isPracticeMode, practiceQuestion, isPracticeLoading]);
+    }, [isPracticeMode, practiceQuestion, isPracticeLoading, fetchPracticeQuestion]);
 
     const formatSeconds = (totalSeconds: number) => {
         const minutes = Math.floor(totalSeconds / 60);
