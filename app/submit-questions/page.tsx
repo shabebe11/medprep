@@ -1,13 +1,12 @@
 'use client';
 
 import "./page.css";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "mmi" | "ucat";
 
 export default function SubmitQuestionsPage() {
-  const supabase = useMemo(() => createClient(), []);
   const [mode, setMode] = useState<Mode>("mmi");
 
   const [mmiQuestion, setMmiQuestion] = useState("");
@@ -31,6 +30,7 @@ export default function SubmitQuestionsPage() {
     }
 
     setIsSaving(true);
+    const supabase = createClient();
     const { error } = await supabase.from("MMI").insert({
       question: mmiQuestion.trim(),
       answer: mmiAnswer.trim(),
@@ -71,6 +71,7 @@ export default function SubmitQuestionsPage() {
     }
 
     setIsSaving(true);
+    const supabase = createClient();
     const { error } = await supabase.from("Ucat").insert({
       question: ucatQuestion.trim(),
       answer1: ucatAnswers[0]?.trim() || null,

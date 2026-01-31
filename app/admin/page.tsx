@@ -1,7 +1,7 @@
 'use client';
 
 import "./page.css";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const REQUIRED_UCAT_HEADERS = [
@@ -71,7 +71,6 @@ const parseCsv = (content: string) => {
 };
 
 export default function AdminPage() {
-  const supabase = useMemo(() => createClient(), []);
   const [activeTab, setActiveTab] = useState<UploadType>("mmi");
 
   const [mmiQuestion, setMmiQuestion] = useState("");
@@ -99,6 +98,7 @@ export default function AdminPage() {
     }
 
     setIsSaving(true);
+    const supabase = createClient();
     const { error } = await supabase.from("MMI").insert({
       question: mmiQuestion.trim(),
       answer: mmiAnswer.trim(),
@@ -139,6 +139,7 @@ export default function AdminPage() {
     }
 
     setIsSaving(true);
+    const supabase = createClient();
     const { error } = await supabase.from("Ucat").insert({
       question: ucatQuestion.trim(),
       answer1: ucatAnswers[0]?.trim() || null,
@@ -202,6 +203,7 @@ export default function AdminPage() {
     setIsSaving(true);
 
     try {
+      const supabase = createClient();
       if (type === "mmi") {
         const payload = mappedRows.map((row) => ({
           question: row.question?.trim(),
