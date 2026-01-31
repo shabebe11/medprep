@@ -16,9 +16,9 @@ function getSupabaseEnv() {
   return { url, anonKey }
 }
 
-export function createClient() {
+export async function createClient() {
   const { url, anonKey } = getSupabaseEnv()
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
 
   return createServerClient(url, anonKey, {
     cookies: {
