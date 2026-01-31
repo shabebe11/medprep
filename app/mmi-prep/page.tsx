@@ -1,6 +1,13 @@
 'use client';
 import "./page.css";
 import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+type MmiQuestion = {
+    id: number;
+    question: string | null;
+    answer: string | null;
+};
 
 export default function Home() {
     const [answerRevealed, setAnswerRevealed] = useState(false);
@@ -13,12 +20,95 @@ export default function Home() {
     const [respDuration, setRespDuration] = useState(180);
     const [isPrepRunning, setIsPrepRunning] = useState(false);
     const [isRespRunning, setIsRespRunning] = useState(false);
+    const [dailyQuestion, setDailyQuestion] = useState<MmiQuestion | null>(null);
+    const [practiceQuestion, setPracticeQuestion] = useState<MmiQuestion | null>(null);
+    const [isDailyLoading, setIsDailyLoading] = useState(false);
+    const [isPracticeLoading, setIsPracticeLoading] = useState(false);
+    const [dailyError, setDailyError] = useState<string | null>(null);
+    const [practiceError, setPracticeError] = useState<string | null>(null);
 
     const getLocalDateString = (date = new Date()) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
+    };
+
+    const getDayOfYear = (date = new Date()) => {
+        const start = new Date(date.getFullYear(), 0, 0);
+        const diff =
+            date.getTime() -
+            start.getTime() +
+            (start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000;
+        return Math.floor(diff / (1000 * 60 * 60 * 24));
+    };
+
+    const fetchMmiQuestionByIndex = async (index: number) => {
+        const supabase = createClient();
+        const { data, error } = await supabase
+            .from("MMI")
+            .select("id, question, answer")
+            .order("id", { ascending: true })
+            .range(index, index)
+            .limit(1)
+            .maybeSingle();
+
+        if (error) throw error;
+        return data ?? null;
+    };
+
+    const fetchRandomMmiQuestion = async () => {
+        const supabase = createClient();
+        const { count, error: countError } = await supabase
+            .from("MMI")
+            .select("id", { count: "exact", head: true });
+
+        if (countError) throw countError;
+        if (!count) return null;
+
+        const randomIndex = Math.floor(Math.random() * count);
+        return fetchMmiQuestionByIndex(randomIndex);
+    };
+
+    const fetchDailyQuestion = async () => {
+        setIsDailyLoading(true);
+        setDailyError(null);
+        try {
+            const supabase = createClient();
+            const { count, error: countError } = await supabase
+                .from("MMI")
+                .select("id", { count: "exact", head: true });
+
+            if (countError) throw countError;
+            if (!count) {
+                setDailyQuestion(null);
+                return;
+            }
+
+            const dayIndex = Math.max(0, getDayOfYear() - 1) % count;
+            let data = await fetchMmiQuestionByIndex(dayIndex);
+            if (!data) {
+                data = await fetchRandomMmiQuestion();
+            }
+            setDailyQuestion(data);
+        } catch (error) {
+            setDailyError(error instanceof Error ? error.message : "Failed to load daily MMI question.");
+        } finally {
+            setIsDailyLoading(false);
+        }
+    };
+
+    const fetchPracticeQuestion = async () => {
+        setIsPracticeLoading(true);
+        setPracticeError(null);
+        try {
+            const data = await fetchRandomMmiQuestion();
+            setPracticeQuestion(data);
+        } catch (error) {
+            setPracticeError(error instanceof Error ? error.message : "Failed to load practice MMI question.");
+        } finally {
+            setIsPracticeLoading(false);
+        }
     };
 
     const recordDailyReveal = () => {
@@ -102,6 +192,16 @@ export default function Home() {
         return () => window.clearInterval(intervalId);
     }, [isRespRunning]);
 
+    useEffect(() => {
+        fetchDailyQuestion();
+    }, []);
+
+    useEffect(() => {
+        if (isPracticeMode && !practiceQuestion && !isPracticeLoading) {
+            fetchPracticeQuestion();
+        }
+    }, [isPracticeMode, practiceQuestion, isPracticeLoading]);
+
     const formatSeconds = (totalSeconds: number) => {
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
@@ -115,7 +215,11 @@ export default function Home() {
                 <h1 className="PracticeText">Practice MMI Question</h1>
                 <p className="PracticeSubText">
                     {/* retrieve random question from db */}
-                    Practice MMI question here
+                    {isPracticeLoading
+                        ? "Loading practice question..."
+                        : practiceError
+                        ? practiceError
+                        : practiceQuestion?.question ?? "No practice question available yet."}
                 </p>
                 <div className="action-row">
                     <button
@@ -134,7 +238,13 @@ export default function Home() {
                     <button className="reveal-button" onClick={() => setAnswerRevealed(!answerRevealed)}>
                         {answerRevealed ? 'Hide Answer' : 'Reveal Answer'}
                     </button>
-                    <button className="generate-button" onClick={() => setIsPracticeMode(true)}>
+                    <button
+                        className="generate-button"
+                        onClick={() => {
+                            setAnswerRevealed(false);
+                            fetchPracticeQuestion();
+                        }}
+                    >
                         Generate new question
                     </button>
                 </div>
@@ -242,7 +352,7 @@ export default function Home() {
                 {answerRevealed && (
                     <p className="AnswerText">
                       {/* Get answer from db */}
-                        Practice MMI answer here
+                        {practiceQuestion?.answer ?? "No answer available."}
                     </p>
                 )}
                 <button className="back-button" onClick={() => setIsPracticeMode(false)}>
@@ -258,7 +368,11 @@ export default function Home() {
             <h1 className="DailyText">Daily MMI Question</h1>
             <p className="DailySubText">
                 {/* retrieve random day number question from db */}
-                MMI question here
+                {isDailyLoading
+                    ? "Loading daily MMI question..."
+                    : dailyError
+                    ? dailyError
+                    : dailyQuestion?.question ?? "No daily question available yet."}
             </p>
             <div className="action-row">
                 <button
@@ -273,14 +387,20 @@ export default function Home() {
                 >
                     {answerRevealed ? 'Hide Answer' : 'Reveal Answer'}
                 </button>
-                <button className="generate-button" onClick={() => setIsPracticeMode(true)}>
+                <button
+                    className="generate-button"
+                    onClick={() => {
+                        setIsPracticeMode(true);
+                        setAnswerRevealed(false);
+                    }}
+                >
                     Generate question
                 </button>
             </div>
             {answerRevealed && (
                 <p className="DailyAnswerText">
                     {/* retrieve answer from db */}
-                    MMI answer here
+                    {dailyQuestion?.answer ?? "No answer available."}
                 </p>
             )}
         </div>

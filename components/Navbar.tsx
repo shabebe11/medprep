@@ -28,6 +28,11 @@ export default function Navbar() {
               Profile
             </Link>
           </li>
+          <li className="navbar-item">
+            <Link href="/submit-questions" className="navbar-link">
+              Submit Questions
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>

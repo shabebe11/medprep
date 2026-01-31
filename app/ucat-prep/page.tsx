@@ -2,6 +2,14 @@
 
 import "./page.css";
 import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+type UcatQuestion = {
+  id: number;
+  prompt: string;
+  options: string[];
+  correctIndex: number | null;
+};
 
 export default function Home() {
   const [verbalSelected, setVerbalSelected] = useState(false);
@@ -17,9 +25,12 @@ export default function Home() {
   const [hasStarted, setHasStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
-  const [answerResults, setAnswerResults] = useState<Record<number, boolean>>({});
+  const [answerResults, setAnswerResults] = useState<Record<number, boolean | null>>({});
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [questions, setQuestions] = useState<UcatQuestion[]>([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [questionLoadError, setQuestionLoadError] = useState<string | null>(null);
 
   const hasSectionSelected = useMemo(
     () => verbalSelected || quantSelected || decisionSelected || situationalSelected,
@@ -45,24 +56,116 @@ export default function Home() {
     selectedQuestions ?? (hasValidCustomQuestions ? customQuestionsValue : 0);
   const timerMinutes = selectedTimer ?? (hasValidCustom ? customMinutesValue : 0);
 
-  const questions = useMemo(() => {
-    if (!totalQuestions) return [];
-    return Array.from({ length: totalQuestions }, (_, index) => ({
-      id: index + 1,
-      prompt: `Question ${index + 1}: UCAT practice prompt goes here.`,
-      options: ["Option A", "Option B", "Option C", "Option D"],
-      correctIndex: index % 4,
-    }));
-  }, [totalQuestions]);
+  const loadQuestions = async (limit: number, types: string[]) => {
+    if (!limit) return [];
+    const supabase = createClient();
+
+    let countQuery = supabase.from("Ucat").select("id", { count: "exact", head: true });
+    if (types.length) {
+      countQuery = countQuery.in("type", types);
+    }
+    const { count, error: countError } = await countQuery;
+
+    if (countError) throw countError;
+    if (!count) return [];
+
+    const safeLimit = Math.min(limit, count);
+    const maxOffset = Math.max(0, count - safeLimit);
+    const offset = maxOffset ? Math.floor(Math.random() * (maxOffset + 1)) : 0;
+
+    let dataQuery = supabase
+      .from("Ucat")
+      .select("id, question, answer1, answer2, answer3, answer4, answer5, correct_answer")
+      .order("id", { ascending: true })
+      .range(offset, offset + safeLimit - 1);
+
+    if (types.length) {
+      dataQuery = dataQuery.in("type", types);
+    }
+
+    const { data, error } = await dataQuery;
+
+    if (error) throw error;
+
+    return (data ?? []).map((row, index) => {
+      const options = [
+        row.answer1,
+        row.answer2,
+        row.answer3,
+        row.answer4,
+        row.answer5,
+      ]
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter(Boolean);
+
+      let correctIndex: number | null = null;
+      if (typeof row.correct_answer === "number") {
+        const normalized = Math.trunc(row.correct_answer);
+        if (normalized >= 1 && normalized <= options.length) {
+          correctIndex = normalized - 1;
+        }
+      }
+
+      return {
+        id: row.id ?? index + 1,
+        prompt: row.question ?? "Untitled question",
+        options,
+        correctIndex,
+      };
+    });
+  };
+
+  const handleStart = async () => {
+    if (!canStart) return;
+    const selectedTypes = [
+      verbalSelected ? "VR" : null,
+      decisionSelected ? "DM" : null,
+      quantSelected ? "QR" : null,
+      situationalSelected ? "SJT" : null,
+    ].filter(Boolean) as string[];
+    setIsLoadingQuestions(true);
+    setQuestionLoadError(null);
+    try {
+      const loaded = await loadQuestions(totalQuestions, selectedTypes);
+      if (!loaded.length) {
+        setQuestionLoadError("No questions found for the selected types.");
+        setIsLoadingQuestions(false);
+        return;
+      }
+      setQuestions(loaded);
+      setHasStarted(true);
+      setShowSummary(false);
+      setCurrentQuestionIndex(0);
+      setSelectedAnswers({});
+      setAnswerResults({});
+      if (practiceMode === "timed") {
+        setTimeRemaining(Math.max(1, Math.round(timerMinutes * 60)));
+      } else {
+        setTimeRemaining(null);
+      }
+    } catch (error) {
+      setQuestionLoadError(
+        error instanceof Error ? error.message : "Failed to load UCAT questions."
+      );
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  };
 
   const summary = useMemo(() => {
     if (!questions.length) {
-      return { correctCount: 0, results: [] as { id: number; isCorrect: boolean }[] };
+      return {
+        correctCount: 0,
+        results: [] as { id: number; isCorrect: boolean | null }[],
+      };
     }
     const results = questions.map((question, index) => ({
       id: question.id,
       isCorrect:
-        answerResults[index] ?? (selectedAnswers[index] === question.correctIndex),
+        answerResults[index] ??
+        (question.correctIndex === null
+          ? null
+          : selectedAnswers[index] === question.correctIndex),
     }));
     const correctCount = results.filter((result) => result.isCorrect).length;
     return { correctCount, results };
@@ -214,25 +317,14 @@ export default function Home() {
             <div className="start-inline">
               <button
                 className="timer-start"
-                disabled={!canStart}
-                onClick={() => {
-                  if (!canStart) return;
-                  setHasStarted(true);
-                  setShowSummary(false);
-                  setCurrentQuestionIndex(0);
-                  setSelectedAnswers({});
-                  setAnswerResults({});
-                  if (practiceMode === "timed") {
-                    setTimeRemaining(Math.max(1, Math.round(timerMinutes * 60)));
-                  } else {
-                    setTimeRemaining(null);
-                  }
-                }}
+                disabled={!canStart || isLoadingQuestions}
+                onClick={handleStart}
               >
-                Start
+                {isLoadingQuestions ? "Loading..." : "Start"}
               </button>
             </div>
           )}
+          {questionLoadError && <p className="timer-settings-title">{questionLoadError}</p>}
         </div>
       ) : showSummary ? (
         <div className="ucat-page">
@@ -245,9 +337,20 @@ export default function Home() {
               {summary.results.map((result) => (
                 <div
                   key={result.id}
-                  className={`summary-item ${result.isCorrect ? "correct" : "incorrect"}`}
+                  className={`summary-item ${
+                    result.isCorrect === null
+                      ? ""
+                      : result.isCorrect
+                      ? "correct"
+                      : "incorrect"
+                  }`}
                 >
-                  Question {result.id}: {result.isCorrect ? "Correct" : "Incorrect"}
+                  Question {result.id}:{" "}
+                  {result.isCorrect === null
+                    ? "Unscored"
+                    : result.isCorrect
+                    ? "Correct"
+                    : "Incorrect"}
                 </div>
               ))}
             </div>
@@ -298,12 +401,14 @@ export default function Home() {
               className="quiz-next"
               disabled={selectedAnswers[currentQuestionIndex] === undefined}
               onClick={() => {
+                const current = questions[currentQuestionIndex];
                 const isCorrect =
-                  selectedAnswers[currentQuestionIndex] ===
-                  questions[currentQuestionIndex]?.correctIndex;
+                  current?.correctIndex === null
+                    ? null
+                    : selectedAnswers[currentQuestionIndex] === current?.correctIndex;
                 setAnswerResults((prev) => ({
                   ...prev,
-                  [currentQuestionIndex]: Boolean(isCorrect),
+                  [currentQuestionIndex]: isCorrect,
                 }));
                 if (currentQuestionIndex + 1 >= questions.length) {
                   setShowSummary(true);
