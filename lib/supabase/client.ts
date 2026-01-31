@@ -1,6 +1,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 function getSupabaseEnv() {
+  // Read public Supabase config from env and fail fast if missing.
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY ??
@@ -16,6 +17,7 @@ function getSupabaseEnv() {
 }
 
 export function createClient() {
+  // Browser client for client components.
   const { url, anonKey } = getSupabaseEnv()
   return createBrowserClient(url, anonKey)
 }

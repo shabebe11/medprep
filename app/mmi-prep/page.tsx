@@ -27,6 +27,7 @@ export default function Home() {
     const [dailyError, setDailyError] = useState<string | null>(null);
     const [practiceError, setPracticeError] = useState<string | null>(null);
 
+    // Normalize date to a local YYYY-MM-DD string for daily tracking.
     const getLocalDateString = (date = new Date()) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -34,6 +35,7 @@ export default function Home() {
         return `${year}-${month}-${day}`;
     };
 
+    // Convert today's date into day-of-year (1-366) for deterministic daily pick.
     const getDayOfYear = (date = new Date()) => {
         const start = new Date(date.getFullYear(), 0, 0);
         const diff =
@@ -43,6 +45,7 @@ export default function Home() {
         return Math.floor(diff / (1000 * 60 * 60 * 24));
     };
 
+    // Fetch the Nth question (0-based) to keep daily rotation stable.
     const fetchMmiQuestionByIndex = useCallback(async (index: number) => {
         const supabase = createClient();
         const { data, error } = await supabase
@@ -57,6 +60,7 @@ export default function Home() {
         return data ?? null;
     }, []);
 
+    // Random practice question (used for practice + daily fallback).
     const fetchRandomMmiQuestion = useCallback(async () => {
         const supabase = createClient();
         const { count, error: countError } = await supabase
@@ -70,6 +74,7 @@ export default function Home() {
         return fetchMmiQuestionByIndex(randomIndex);
     }, [fetchMmiQuestionByIndex]);
 
+    // Daily question: day-of-year, fallback to random if missing.
     const fetchDailyQuestion = useCallback(async () => {
         setIsDailyLoading(true);
         setDailyError(null);
@@ -98,6 +103,7 @@ export default function Home() {
         }
     }, [fetchMmiQuestionByIndex, fetchRandomMmiQuestion]);
 
+    // Practice question is always random to encourage variety.
     const fetchPracticeQuestion = useCallback(async () => {
         setIsPracticeLoading(true);
         setPracticeError(null);
@@ -111,6 +117,7 @@ export default function Home() {
         }
     }, [fetchRandomMmiQuestion]);
 
+    // Track daily usage and streaks in localStorage.
     const recordDailyReveal = () => {
         if (typeof window === "undefined") return;
 
@@ -167,6 +174,7 @@ export default function Home() {
         window.localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(trimmedHistory));
     };
 
+    // Prep timer countdown.
     useEffect(() => {
         if (!isPrepRunning) return;
         const intervalId = window.setInterval(() => {
@@ -184,6 +192,7 @@ export default function Home() {
         return () => window.clearInterval(intervalId);
     }, [isPrepRunning, respDuration]);
 
+    // Response timer countdown.
     useEffect(() => {
         if (!isRespRunning) return;
         const intervalId = window.setInterval(() => {
@@ -192,10 +201,12 @@ export default function Home() {
         return () => window.clearInterval(intervalId);
     }, [isRespRunning]);
 
+    // Load daily question on first render.
     useEffect(() => {
         fetchDailyQuestion();
     }, [fetchDailyQuestion]);
 
+    // Load practice question when switching into practice mode.
     useEffect(() => {
         if (isPracticeMode && !practiceQuestion && !isPracticeLoading) {
             fetchPracticeQuestion();

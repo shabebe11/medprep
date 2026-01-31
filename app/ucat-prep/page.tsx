@@ -56,6 +56,7 @@ export default function Home() {
     selectedQuestions ?? (hasValidCustomQuestions ? customQuestionsValue : 0);
   const timerMinutes = selectedTimer ?? (hasValidCustom ? customMinutesValue : 0);
 
+  // Load a random window of UCAT questions, optionally filtered by type.
   const loadQuestions = async (limit: number, types: string[]) => {
     if (!limit) return [];
     const supabase = createClient();
@@ -66,7 +67,7 @@ export default function Home() {
     }
     const { count, error: countError } = await countQuery;
 
-    if (countError) throw countError;
+    if (countError) throw new Error(countError.message);
     if (!count) return [];
 
     const safeLimit = Math.min(limit, count);
@@ -75,7 +76,9 @@ export default function Home() {
 
     let dataQuery = supabase
       .from("Ucat")
-      .select("id, question, answer1, answer2, answer3, answer4, answer5, correct_answer")
+      .select(
+        'id, question, "answer 1", "answer 2", "answer 3", "answer 4", "answer 5", correct_answer, type'
+      )
       .order("id", { ascending: true })
       .range(offset, offset + safeLimit - 1);
 
@@ -85,15 +88,15 @@ export default function Home() {
 
     const { data, error } = await dataQuery;
 
-    if (error) throw error;
+    if (error) throw new Error(error.message);
 
     return (data ?? []).map((row, index) => {
       const options = [
-        row.answer1,
-        row.answer2,
-        row.answer3,
-        row.answer4,
-        row.answer5,
+        row["answer 1"],
+        row["answer 2"],
+        row["answer 3"],
+        row["answer 4"],
+        row["answer 5"],
       ]
         .map((value) => (typeof value === "string" ? value.trim() : ""))
         .filter(Boolean);
@@ -115,6 +118,7 @@ export default function Home() {
     });
   };
 
+  // Start a quiz session and fetch questions from Supabase.
   const handleStart = async () => {
     if (!canStart) return;
     const selectedTypes = [
@@ -144,9 +148,11 @@ export default function Home() {
         setTimeRemaining(null);
       }
     } catch (error) {
-      setQuestionLoadError(
-        error instanceof Error ? error.message : "Failed to load UCAT questions."
-      );
+      if (error && typeof error === "object" && "message" in error) {
+        setQuestionLoadError(String(error.message));
+      } else {
+        setQuestionLoadError("Failed to load UCAT questions.");
+      }
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -156,11 +162,12 @@ export default function Home() {
     if (!questions.length) {
       return {
         correctCount: 0,
-        results: [] as { id: number; isCorrect: boolean | null }[],
+        results: [] as { id: number; number: number; isCorrect: boolean | null }[],
       };
     }
     const results = questions.map((question, index) => ({
       id: question.id,
+      number: index + 1,
       isCorrect:
         answerResults[index] ??
         (question.correctIndex === null
@@ -171,6 +178,7 @@ export default function Home() {
     return { correctCount, results };
   }, [questions, selectedAnswers, answerResults]);
 
+  // Timer countdown for timed mode.
   useEffect(() => {
     if (!hasStarted || practiceMode !== "timed" || timeRemaining === null) return;
     if (timeRemaining <= 0) return;
@@ -180,6 +188,7 @@ export default function Home() {
     return () => window.clearInterval(intervalId);
   }, [hasStarted, practiceMode, timeRemaining]);
 
+  // Simple mm:ss formatter for timers.
   const formatSeconds = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
@@ -345,7 +354,7 @@ export default function Home() {
                       : "incorrect"
                   }`}
                 >
-                  Question {result.id}:{" "}
+                  Question {result.number}:{" "}
                   {result.isCorrect === null
                     ? "Unscored"
                     : result.isCorrect

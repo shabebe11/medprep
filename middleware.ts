@@ -8,6 +8,7 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !anonKey) {
+    // If env vars aren't set, just continue without Supabase auth refresh.
     return NextResponse.next({ request })
   }
 
@@ -26,6 +27,7 @@ export async function middleware(request: NextRequest) {
     },
   })
 
+  // Touch auth to refresh session cookies when needed.
   await supabase.auth.getUser()
 
   return response

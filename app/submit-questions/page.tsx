@@ -22,6 +22,7 @@ export default function SubmitQuestionsPage() {
 
   const resetMessage = () => setMessage(null);
 
+  // Insert a user-submitted MMI question.
   const handleMmiSubmit = async () => {
     resetMessage();
     if (!mmiQuestion.trim() || !mmiAnswer.trim()) {
@@ -46,6 +47,7 @@ export default function SubmitQuestionsPage() {
     setIsSaving(false);
   };
 
+  // Insert a user-submitted UCAT question.
   const handleUcatSubmit = async () => {
     resetMessage();
     if (!ucatQuestion.trim()) {
@@ -74,11 +76,11 @@ export default function SubmitQuestionsPage() {
     const supabase = createClient();
     const { error } = await supabase.from("Ucat").insert({
       question: ucatQuestion.trim(),
-      answer1: ucatAnswers[0]?.trim() || null,
-      answer2: ucatAnswers[1]?.trim() || null,
-      answer3: ucatAnswers[2]?.trim() || null,
-      answer4: ucatAnswers[3]?.trim() || null,
-      answer5: ucatAnswers[4]?.trim() || null,
+      "answer 1": ucatAnswers[0]?.trim() || null,
+      "answer 2": ucatAnswers[1]?.trim() || null,
+      "answer 3": ucatAnswers[2]?.trim() || null,
+      "answer 4": ucatAnswers[3]?.trim() || null,
+      "answer 5": ucatAnswers[4]?.trim() || null,
       correct_answer: correctNumber,
       type: ucatType.trim(),
     });

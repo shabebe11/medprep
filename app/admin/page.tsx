@@ -21,8 +21,10 @@ type UploadType = "ucat" | "mmi";
 
 type UploadRow = Record<string, string>;
 
+// Normalize CSV headers for matching.
 const normalizeHeader = (value: string) => value.trim().toLowerCase();
 
+// Minimal CSV parser supporting quoted fields.
 const parseCsv = (content: string) => {
   const rows: string[][] = [];
   let current = "";
@@ -90,6 +92,7 @@ export default function AdminPage() {
     setUploadError(null);
   };
 
+  // Insert a single MMI question.
   const handleMmiSubmit = async () => {
     resetMessages();
     if (!mmiQuestion.trim() || !mmiAnswer.trim()) {
@@ -114,6 +117,7 @@ export default function AdminPage() {
     setIsSaving(false);
   };
 
+  // Insert a single UCAT question.
   const handleUcatSubmit = async () => {
     resetMessages();
     if (!ucatQuestion.trim()) {
@@ -142,11 +146,11 @@ export default function AdminPage() {
     const supabase = createClient();
     const { error } = await supabase.from("Ucat").insert({
       question: ucatQuestion.trim(),
-      answer1: ucatAnswers[0]?.trim() || null,
-      answer2: ucatAnswers[1]?.trim() || null,
-      answer3: ucatAnswers[2]?.trim() || null,
-      answer4: ucatAnswers[3]?.trim() || null,
-      answer5: ucatAnswers[4]?.trim() || null,
+      "answer 1": ucatAnswers[0]?.trim() || null,
+      "answer 2": ucatAnswers[1]?.trim() || null,
+      "answer 3": ucatAnswers[2]?.trim() || null,
+      "answer 4": ucatAnswers[3]?.trim() || null,
+      "answer 5": ucatAnswers[4]?.trim() || null,
       correct_answer: correctNumber,
       type: ucatType.trim(),
     });
@@ -163,6 +167,7 @@ export default function AdminPage() {
     setIsSaving(false);
   };
 
+  // Parse CSV and bulk insert rows.
   const handleCsvUpload = async (file: File, type: UploadType) => {
     resetMessages();
     setUploadPreview([]);
@@ -215,11 +220,11 @@ export default function AdminPage() {
       } else {
         const payload = mappedRows.map((row) => ({
           question: row.question?.trim(),
-          answer1: row.answer1?.trim() || null,
-          answer2: row.answer2?.trim() || null,
-          answer3: row.answer3?.trim() || null,
-          answer4: row.answer4?.trim() || null,
-          answer5: row.answer5?.trim() || null,
+          "answer 1": row.answer1?.trim() || null,
+          "answer 2": row.answer2?.trim() || null,
+          "answer 3": row.answer3?.trim() || null,
+          "answer 4": row.answer4?.trim() || null,
+          "answer 5": row.answer5?.trim() || null,
           correct_answer: Number(row.correct_answer) || null,
           type: row.type?.trim() || null,
         }));
