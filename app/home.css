@@ -355,6 +355,7 @@
   .home-grid {
     grid-template-columns: 1fr;
   }
+
 }
 
 @media (max-width: 520px) {
@@ -379,4 +380,5 @@
   .mini-calendar {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+
 }

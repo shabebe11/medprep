@@ -14,9 +14,16 @@ body {
   color: #111827;
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 /* ===== Layout ===== */
 main {
   padding: 2rem;
+  flex: 1;
 }
 
 /* ===== Navbar (basic placeholder styling) ===== */
@@ -24,6 +31,93 @@ nav {
   padding: 1rem 2rem;
   background-color: #ffffff;
   border-bottom: 1px solid #e5e7eb;
+}
+
+/* ===== Footer ===== */
+.footer {
+  margin-top: auto;
+  padding: 1.1rem 2rem;
+  background: #ffffff;
+  border-top: 1px solid #111827;
+  box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.footer-content {
+  max-width: none;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.footer-left {
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.footer-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0f172a;
+}
+
+.footer-name-link {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footer-name-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tech-icon-small {
+  width: 18px;
+  height: 18px;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-social-link {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  box-shadow: 0 12px 22px rgba(15, 23, 42, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.footer-social-link:hover {
+  transform: translateY(-2px);
+  border-color: rgba(15, 118, 110, 0.55);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+}
+
+.footer-social-icon {
+  width: 20px;
+  height: 20px;
 }
 
 /* ===== Home Page ===== */
@@ -111,6 +205,15 @@ nav {
     gap: 1rem;
   }
 
+  .footer {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .DailyMMI {
     margin: 2.5rem 1.25rem;
     padding: 2.25rem 1.75rem;
@@ -134,5 +237,10 @@ nav {
 
   .DailySubText {
     font-size: 1rem;
+  }
+
+  .footer-right {
+    width: 100%;
+    justify-content: space-between;
   }
 }
